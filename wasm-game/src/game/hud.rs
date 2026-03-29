@@ -1,4 +1,5 @@
 //! DOM HUD、弹窗、打字行 HTML
+use super::constants::STARTING_LIVES;
 use super::mode::GameMode;
 use super::state::Game;
 use crate::levels::LEVELS;
@@ -9,7 +10,7 @@ use web_sys::{Document, HtmlElement};
 impl Game {
     pub fn sync_dom(&self, doc: &Document) {
         if let Some(el) = doc.get_element_by_id("level-num") {
-            el.set_text_content(Some(&self.level().id.to_string()));
+            el.set_text_content(Some(&self.level_display_id.to_string()));
         }
         if let Some(el) = doc.get_element_by_id("score") {
             el.set_text_content(Some(&self.score.to_string()));
@@ -32,20 +33,19 @@ impl Game {
         }
         if let Some(el) = doc.get_element_by_id("lives") {
             let mut s = String::new();
-            for i in 0..3 {
-                s.push(if i < self.lives as usize { '♥' } else { '♡' });
+            for i in 0..STARTING_LIVES {
+                s.push(if i < self.lives { '♥' } else { '♡' });
             }
             el.set_text_content(Some(&s));
         }
         if let Some(el) = doc.get_element_by_id("prompt-line") {
-            let lv = self.level();
             let inner = match self.mode {
                 GameMode::Hell => String::from(
                     "<span class=\"prompt-hint\">只听音频，不显示原文。请听写听到的英文。</span>",
                 ),
                 GameMode::Hard | GameMode::Easy => format!(
                     "<span class=\"prompt-cn-label\">中文</span> {}",
-                    escape_html(lv.translation)
+                    escape_html(&self.level_translation)
                 ),
             };
             el.set_inner_html(&inner);
@@ -71,14 +71,15 @@ impl Game {
             if let Some(title) = doc.get_element_by_id("modal-title") {
                 if self.modal_game_over {
                     title.set_text_content(Some("游戏结束"));
-                } else if self.level_index >= LEVELS.len() - 1 {
+                } else if self.use_api_levels {
+                    title.set_text_content(Some("通关！"));
+                } else if self.level_index >= LEVELS.len().saturating_sub(1).max(0) {
                     title.set_text_content(Some("全部通关！"));
                 } else {
                     title.set_text_content(Some("通关！"));
                 }
             }
-            if let Some(body) = doc.get_element_by_id("modal-body") {
-                let lv = self.level();
+            if let Some(body) = doc.get_element_by_id("modal-body-wasm") {
                 let inner = if self.modal_game_over {
                     format!(
                         "<p class=\"modal-stats\">本局积分 <strong>{}</strong></p><p class=\"breakdown-trans\">再试一次，守住防线！</p>",
@@ -91,8 +92,8 @@ impl Game {
                          <div class=\"breakdown-trans\"><strong>翻译：</strong>{}</div>",
                         self.score,
                         self.combo,
-                        escape_html(lv.sentence),
-                        escape_html(lv.translation)
+                        escape_html(&self.target),
+                        escape_html(&self.level_translation)
                     )
                 };
                 body.set_inner_html(&inner);
@@ -100,7 +101,9 @@ impl Game {
             if let Some(btn) = doc.get_element_by_id("btn-next") {
                 btn.set_text_content(Some(if self.modal_game_over {
                     "再试本关"
-                } else if self.level_index >= LEVELS.len() - 1 {
+                } else if self.use_api_levels {
+                    "下一关"
+                } else if self.level_index >= LEVELS.len().saturating_sub(1).max(0) {
                     "再玩一次"
                 } else {
                     "下一关"

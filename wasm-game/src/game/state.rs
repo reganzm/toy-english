@@ -5,9 +5,14 @@ use super::mode::GameMode;
 pub struct Game {
     pub mode: GameMode,
     pub level_index: usize,
+    /// HUD 关卡号（嵌入式用 levels.id；API 用后端 id）
+    pub level_display_id: u32,
+    pub use_api_levels: bool,
     pub score: u32,
     pub target: String,
     pub progress: String,
+    /// 当前句中文翻译（HUD / 弹窗）
+    pub level_translation: String,
     pub monsters: Vec<Monster>,
     pub bullets: Vec<Bullet>,
     pub particles: Vec<Particle>,

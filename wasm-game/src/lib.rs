@@ -7,6 +7,9 @@ mod dom_bridge;
 mod entities;
 mod game;
 mod levels;
+mod monster_animals;
 mod util;
 
-pub use bootstrap::{run, set_game_mode};
+pub use bootstrap::{
+    apply_api_level, handle_modal_next, is_modal_game_over, run, set_game_mode,
+};

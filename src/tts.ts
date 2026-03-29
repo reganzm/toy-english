@@ -11,12 +11,20 @@ export function initTts(): void {
   if (typeof speechSynthesis === "undefined") return;
   refreshVoices();
   speechSynthesis.addEventListener("voiceschanged", refreshVoices);
+  try {
+    if (localStorage.getItem(STORAGE_KEY) === null) {
+      localStorage.setItem(STORAGE_KEY, "1");
+    }
+  } catch {
+    /* private mode / disabled storage — 仍视为默认开，见 getTtsEnabled */
+  }
 }
 
 export function isTtsSupported(): boolean {
   return typeof speechSynthesis !== "undefined" && typeof SpeechSynthesisUtterance !== "undefined";
 }
 
+/** 未写入或写入非 `"0"` 时均为开启（默认开）。 */
 export function getTtsEnabled(): boolean {
   if (!isTtsSupported()) return false;
   try {

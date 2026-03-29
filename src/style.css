@@ -246,6 +246,152 @@ body {
   width: 100%;
 }
 
+/* —— 设置（z-index 高于通关弹窗） —— */
+.btn-settings {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  padding: 0.38rem 0.95rem 0.38rem 0.72rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #e8f8ff;
+  background: linear-gradient(145deg, rgba(108, 240, 200, 0.22), rgba(61, 90, 128, 0.85));
+  box-shadow:
+    0 0 0 1px rgba(108, 240, 200, 0.35),
+    0 4px 18px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.btn-settings:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    0 0 0 1px rgba(108, 240, 200, 0.55),
+    0 6px 22px rgba(108, 240, 200, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.btn-settings:active {
+  transform: scale(0.97);
+}
+
+.btn-settings-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  background: rgba(4, 8, 20, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.settings-overlay.is-open {
+  display: flex;
+}
+
+.settings-panel {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 20px;
+  padding: 0;
+  background: linear-gradient(165deg, #1a2238 0%, #151b2e 48%, #12182a 100%);
+  border: 1px solid rgba(108, 240, 200, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 24px 48px rgba(0, 0, 0, 0.55),
+    0 0 80px rgba(108, 240, 200, 0.06);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.settings-close {
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.settings-close:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.settings-body {
+  padding: 1.15rem 1.25rem 1.35rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.settings-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.settings-hint {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.settings-tts-btn {
+  flex-shrink: 0;
+  min-width: 5.5rem;
+  padding: 0.5rem 0.85rem;
+  font-weight: 600;
+}
+
 /* 勿用 [hidden] + display:flex 混用：作者样式会盖住 hidden，弹窗会始终显示 */
 .modal-overlay {
   position: fixed;
@@ -307,6 +453,354 @@ body {
   color: var(--muted);
   margin-bottom: 1rem;
   line-height: 1.5;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal-body-analysis {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 0.85rem;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.35);
+  margin: 0 -0.25rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.analysis-muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.analysis-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* 词卡 + 短语块：短语块占满一行；整行在弹窗内居中 */
+.analysis-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+}
+
+.analysis-w-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 5.35rem;
+  max-width: 12.5rem;
+  padding: 0.62rem 0.75rem 0.55rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.analysis-w-card--violet {
+  background: linear-gradient(165deg, #3d2a6b 0%, #2a1d4a 55%, #241838 100%);
+}
+
+.analysis-w-card--slate {
+  background: linear-gradient(165deg, #2a3344 0%, #1c2433 50%, #151c28 100%);
+}
+
+.analysis-w-card--teal {
+  background: linear-gradient(165deg, #1f4a4a 0%, #153838 100%);
+}
+
+.analysis-w-card--rose {
+  background: linear-gradient(165deg, #4a2838 0%, #321c28 100%);
+}
+
+.analysis-w-card--maroon {
+  background: linear-gradient(165deg, #4a1a28 0%, #301018 100%);
+}
+
+.analysis-w-card--amber {
+  background: linear-gradient(165deg, #4a3a1a 0%, #302810 100%);
+}
+
+.analysis-w-ipa {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 0.38rem;
+  font-family: "Lucida Sans Unicode", "Arial Unicode MS", sans-serif;
+}
+
+.analysis-pos-pill {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.16rem 0.52rem;
+  border-radius: 999px;
+  margin-bottom: 0.42rem;
+  line-height: 1.2;
+}
+
+.analysis-pos-pill--pron {
+  background: rgba(167, 139, 250, 0.35);
+  color: #e9d5ff;
+}
+
+.analysis-pos-pill--aux {
+  background: rgba(244, 114, 182, 0.32);
+  color: #fce7f3;
+}
+
+.analysis-pos-pill--adj {
+  background: rgba(45, 212, 191, 0.28);
+  color: #ccfbf1;
+}
+
+.analysis-pos-pill--noun {
+  background: rgba(248, 113, 113, 0.3);
+  color: #fecaca;
+}
+
+.analysis-pos-pill--verb {
+  background: rgba(251, 191, 36, 0.28);
+  color: #fef3c7;
+}
+
+.analysis-pos-pill--det {
+  background: rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+}
+
+.analysis-pos-pill--prep {
+  background: rgba(125, 211, 252, 0.22);
+  color: #e0f2fe;
+}
+
+.analysis-pos-pill--muted {
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+.analysis-w-word {
+  font-size: 1.24rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.analysis-w-rule {
+  width: 100%;
+  height: 1px;
+  margin: 0.5rem 0 0.4rem;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* 句子成分标签（词卡底部、短语块下方） */
+.analysis-role-badge {
+  display: inline-block;
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 0.28rem 0.85rem;
+  border-radius: 999px;
+  line-height: 1.25;
+  border: 1px solid transparent;
+}
+
+.analysis-role-badge--subject {
+  background: rgba(251, 191, 36, 0.38);
+  color: #fffbeb;
+  border-color: rgba(251, 191, 36, 0.45);
+}
+
+.analysis-role-badge--predicate {
+  background: rgba(248, 113, 113, 0.35);
+  color: #fef2f2;
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+.analysis-role-badge--object {
+  background: rgba(45, 212, 191, 0.3);
+  color: #ecfdf5;
+  border-color: rgba(45, 212, 191, 0.35);
+}
+
+.analysis-role-badge--predicative {
+  background: rgba(167, 139, 250, 0.38);
+  color: #f5f3ff;
+  border-color: rgba(167, 139, 250, 0.42);
+}
+
+.analysis-role-badge--linking {
+  background: rgba(244, 114, 182, 0.32);
+  color: #fdf2f8;
+  border-color: rgba(244, 114, 182, 0.4);
+}
+
+.analysis-role-badge--adverbial {
+  background: rgba(125, 211, 252, 0.28);
+  color: #f0f9ff;
+  border-color: rgba(125, 211, 252, 0.35);
+}
+
+.analysis-role-badge--attribute {
+  background: rgba(148, 163, 184, 0.35);
+  color: #f1f5f9;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.analysis-role-badge--complement {
+  background: rgba(74, 222, 128, 0.28);
+  color: #f0fdf4;
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+.analysis-role-badge--appositive {
+  background: rgba(192, 132, 252, 0.3);
+  color: #faf5ff;
+  border-color: rgba(192, 132, 252, 0.38);
+}
+
+.analysis-role-badge--default {
+  background: rgba(255, 255, 255, 0.14);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* 短语成分块 */
+.analysis-phrase-block {
+  flex: 1 0 100%;
+  width: 100%;
+  min-width: min(100%, 280px);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.analysis-ph-ipa {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  max-width: 9rem;
+  line-height: 1.3;
+}
+
+/* 短语内逐词：音标 → 词性 → 该词，三列与词一一对齐 */
+.analysis-ph-units {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.2rem 0.5rem;
+}
+
+.analysis-ph-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.32rem;
+  min-width: 0;
+}
+
+.analysis-ph-lex {
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.analysis-ph-box {
+  border-radius: 12px;
+  padding: 0.75rem 0.95rem 0.62rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.analysis-phrase-block--maroon .analysis-ph-box {
+  background: linear-gradient(180deg, #5c1828 0%, #3d101c 100%);
+}
+
+.analysis-phrase-block--wine .analysis-ph-box {
+  background: linear-gradient(180deg, #4a1520 0%, #2e0e14 100%);
+}
+
+.analysis-phrase-block--slate .analysis-ph-box {
+  background: linear-gradient(180deg, #2a3344 0%, #1a2230 100%);
+}
+
+.analysis-ph-text {
+  display: block;
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+}
+
+.analysis-ph-accentline {
+  height: 4px;
+  margin-top: 0.48rem;
+  border-radius: 2px;
+  background: #e11d48;
+  opacity: 0.95;
+  flex-shrink: 0;
+}
+
+/* 句子成分标签：放在短语色块内、红线下方 */
+.analysis-ph-role {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.55rem;
+  padding-top: 0.08rem;
+}
+
+.analysis-constituents {
+  margin-top: 0.25rem;
+  width: 100%;
+}
+
+.analysis-constituents--compact {
+  margin-top: 0;
+}
+
+.analysis-constituents--compact .analysis-list {
+  font-size: 0.94rem;
+}
+
+.analysis-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.analysis-list {
+  margin: 0.35rem auto 0;
+  padding-left: 1.1rem;
+  color: #c5cae0;
+  display: inline-block;
+  text-align: left;
+}
+
+.analysis-notes-line {
+  margin: 0;
+  color: #a8b0c4;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  max-width: 100%;
 }
 
 .breakdown-structure {

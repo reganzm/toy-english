@@ -10,10 +10,12 @@ use crate::levels::LEVELS;
 use crate::util::js_rand;
 
 impl Game {
-    pub fn new_with_mode(mode: GameMode) -> Self {
-        let mut g = Self {
+    pub fn new_unstarted(mode: GameMode) -> Self {
+        Self {
             mode,
             level_index: 0,
+            level_display_id: 1,
+            use_api_levels: false,
             score: 0,
             target: String::new(),
             progress: String::new(),
@@ -22,7 +24,7 @@ impl Game {
             particles: Vec::new(),
             shockwaves: Vec::new(),
             combo: 0,
-            lives: 3,
+            lives: STARTING_LIVES,
             level_locked: false,
             bomb_active: false,
             bomb_t: 0.0,
@@ -35,26 +37,45 @@ impl Game {
             tts_words: Vec::new(),
             tts_word_end_chars: Vec::new(),
             tts_spoken_idx: 0,
-        };
-        g.start_level(0);
-        g
+            level_translation: String::new(),
+        }
     }
 
     pub fn apply_mode(&mut self, mode: GameMode) {
         self.mode = mode;
-        self.start_level(self.level_index);
+        if self.use_api_levels {
+            let s = self.target.clone();
+            let t = self.level_translation.clone();
+            let id = self.level_display_id;
+            self.start_api_level(id, s, t);
+        } else {
+            self.start_embedded_level(self.level_index);
+        }
     }
 
-    pub fn level(&self) -> &crate::levels::LevelData {
-        &LEVELS[self.level_index.min(LEVELS.len() - 1)]
+    pub fn start_embedded_level(&mut self, idx: usize) {
+        self.use_api_levels = false;
+        self.level_index = idx.min(LEVELS.len().saturating_sub(1).max(0));
+        let lv = &LEVELS[self.level_index.min(LEVELS.len() - 1)];
+        self.level_display_id = lv.id;
+        self.target = lv.sentence.to_string();
+        self.level_translation = lv.translation.to_string();
+        self.reset_level_combat();
     }
 
-    fn start_level(&mut self, idx: usize) {
-        self.level_index = idx.min(LEVELS.len() - 1);
+    pub fn start_api_level(&mut self, level_id: u32, sentence: String, translation: String) {
+        self.use_api_levels = true;
+        self.level_display_id = level_id;
+        self.target = sentence;
+        self.level_translation = translation;
+        self.reset_level_combat();
+    }
+
+    fn reset_level_combat(&mut self) {
         self.level_locked = false;
         self.progress.clear();
         self.combo = 0;
-        self.lives = 3;
+        self.lives = STARTING_LIVES;
         self.bullets.clear();
         self.particles.clear();
         self.shockwaves.clear();
@@ -65,12 +86,17 @@ impl Game {
         self.modal_open = false;
         self.modal_game_over = false;
         dom_bridge::tts_cancel();
-        self.target = self.level().sentence.to_string();
         self.spawn_monsters();
         self.rebuild_tts_plan();
         if self.mode.dictation_listen() {
             dom_bridge::tts_speak_full_sentence(&self.target);
         }
+    }
+
+    pub fn restart_current_after_game_over(&mut self) {
+        self.modal_open = false;
+        self.modal_game_over = false;
+        self.reset_level_combat();
     }
 
     fn rebuild_tts_plan(&mut self) {
@@ -128,8 +154,15 @@ impl Game {
 
     fn spawn_monsters(&mut self) {
         self.monsters.clear();
-        let letter_count = self.target.chars().filter(|c| !c.is_whitespace()).count();
-        let count = BASE_MONSTERS.max(letter_count + 8);
+        let span = (SPAWN_BASE_MAX - SPAWN_BASE_MIN + 1) as f64;
+        let base = SPAWN_BASE_MIN + (js_rand() * span).floor() as usize;
+        let ch = self.target.chars().count();
+        let len_bonus = ch
+            .saturating_sub(SPAWN_LEN_START)
+            .saturating_mul(SPAWN_EXTRA_PER_CHAR)
+            .min(SPAWN_LEN_BONUS_CAP);
+        let lv_bonus = self.level_index.saturating_mul(SPAWN_PER_LEVEL_INDEX);
+        let count = (base + len_bonus + lv_bonus).min(SPAWN_HARD_CAP);
         for i in 0..count {
             let col = (i % 8) as f64;
             let row = (i / 8) as f64;
@@ -139,9 +172,11 @@ impl Game {
                 w: 44.0 + js_rand() * 16.0,
                 h: 36.0 + js_rand() * 12.0,
                 speed: 28.0 + js_rand() * 45.0,
-                hue: 280.0 + js_rand() * 60.0,
+                hue: js_rand() * 360.0,
+                sat: 50.0 + js_rand() * 44.0,
+                lit: 44.0 + js_rand() * 26.0,
                 phase: js_rand() * PI * 2.0,
-                variant: (i % 3) as u8,
+                animal: ((js_rand() * 20.0).floor() as u8).min(19),
             });
         }
     }
@@ -160,6 +195,14 @@ impl Game {
 
     fn bullets_for_combo(&self) -> u32 {
         (1 + self.combo / BULLET_COMBO_EVERY).min(MAX_BULLETS)
+    }
+
+    fn gun_muzzle_world(now_secs: f64) -> (f64, f64) {
+        let bob = (now_secs * GUN_BOB_FREQ).sin() * GUN_BOB_AMP;
+        (
+            GUN_ANCHOR_X,
+            GUN_ANCHOR_Y + bob + GUN_MUZZLE_LOCAL_Y,
+        )
     }
 
     pub fn try_char(&mut self, ch: char) {
@@ -187,21 +230,31 @@ impl Game {
         self.progress.push(expect);
         self.combo += 1;
         self.maybe_speak_completed_words();
-        let n = self.bullets_for_combo();
-        let cx = 480.0;
-        let bottom = 540.0 - 36.0;
-        let base_vy = if self.fever() { -620.0 } else { -520.0 };
-        let spread = 13.0;
+        let want = self.bullets_for_combo();
+        let room = (MAX_BULLETS as usize).saturating_sub(self.bullets.len());
+        let n = want.min(room as u32);
+        let now_secs = crate::util::js_now_ms() / 1000.0;
+        let (mx, my) = Self::gun_muzzle_world(now_secs);
+        let spread = 5.0;
+        let speed = if self.fever() {
+            BULLET_SPEED_FEVER
+        } else {
+            BULLET_SPEED
+        };
         for i in 0..n {
             let k = if n == 1 {
                 0.0
             } else {
                 i as f64 - (n as f64 - 1.0) / 2.0
             };
+            let sx = mx + k * spread;
+            let sy = my;
+            let (vx, vy) = Self::bullet_initial_velocity(sx, sy, speed, &self.monsters);
             self.bullets.push(Bullet {
-                x: cx + k * spread,
-                y: bottom,
-                vy: base_vy + k * 18.0,
+                x: sx,
+                y: sy,
+                vx,
+                vy,
                 r: if self.fever() { 7.0 } else { 5.0 },
                 fever: self.fever(),
             });
@@ -319,13 +372,82 @@ impl Game {
         if let Some(i) = best_i {
             if best_d < 130.0 {
                 let m = self.monsters.remove(i);
-                let c = if fever { "#ffb3c8" } else { "#6cf0c8" };
+                let c = if fever {
+                    format!(
+                        "hsl({:.0}, {:.0}%, {:.0}%)",
+                        m.hue,
+                        (m.sat + 12.0).min(100.0),
+                        (m.lit + 18.0).min(82.0)
+                    )
+                } else {
+                    format!(
+                        "hsl({:.0}, {:.0}%, {:.0}%)",
+                        m.hue,
+                        (m.sat + 6.0).min(100.0),
+                        (m.lit + 10.0).min(76.0)
+                    )
+                };
                 let n = if fever { 22 } else { 16 };
-                self.explode(m.x + m.w / 2.0, m.y + m.h / 2.0, c, n);
+                self.explode(m.x + m.w / 2.0, m.y + m.h / 2.0, &c, n);
                 return true;
             }
         }
         false
+    }
+
+    fn nearest_monster_center(monsters: &[Monster], x: f64, y: f64) -> Option<(f64, f64)> {
+        if monsters.is_empty() {
+            return None;
+        }
+        let mut best_d = f64::INFINITY;
+        let mut best = (0.0_f64, 0.0_f64);
+        for m in monsters {
+            let mx = m.x + m.w / 2.0;
+            let my = m.y + m.h / 2.0;
+            let d = ((x - mx).powi(2) + (y - my).powi(2)).sqrt();
+            if d < best_d {
+                best_d = d;
+                best = (mx, my);
+            }
+        }
+        Some(best)
+    }
+
+    fn bullet_initial_velocity(x: f64, y: f64, speed: f64, monsters: &[Monster]) -> (f64, f64) {
+        if let Some((tx, ty)) = Self::nearest_monster_center(monsters, x, y) {
+            let dx = tx - x;
+            let dy = ty - y;
+            let d = (dx * dx + dy * dy).sqrt().max(1e-9);
+            (dx / d * speed, dy / d * speed)
+        } else {
+            (0.0, -speed)
+        }
+    }
+
+    fn steer_bullet_toward_nearest(b: &mut Bullet, monsters: &[Monster], dt: f64) {
+        let speed = if b.fever {
+            BULLET_SPEED_FEVER
+        } else {
+            BULLET_SPEED
+        };
+        let blend = (BULLET_HOMING * dt).min(1.0);
+        if let Some((tx, ty)) = Self::nearest_monster_center(monsters, b.x, b.y) {
+            let dx = tx - b.x;
+            let dy = ty - b.y;
+            let d = (dx * dx + dy * dy).sqrt().max(1e-9);
+            let tvx = dx / d * speed;
+            let tvy = dy / d * speed;
+            b.vx += (tvx - b.vx) * blend;
+            b.vy += (tvy - b.vy) * blend;
+        } else {
+            b.vx += (0.0 - b.vx) * blend;
+            b.vy += (-speed - b.vy) * blend;
+        }
+        let cur = (b.vx * b.vx + b.vy * b.vy).sqrt();
+        if cur > 1e-9 {
+            b.vx *= speed / cur;
+            b.vy *= speed / cur;
+        }
     }
 
     pub fn tick(&mut self, dt: f64) {
@@ -344,7 +466,7 @@ impl Game {
             let lose_y = 540.0 - 50.0;
             let fever_slow = if self.fever() { 0.92 } else { 1.0 };
             for m in &mut self.monsters {
-                m.y += m.speed * dt * fever_slow;
+                m.y += m.speed * MONSTER_DESCENT_SCALE * dt * fever_slow;
             }
             let breach: Vec<_> = self
                 .monsters
@@ -368,8 +490,10 @@ impl Game {
             let old = std::mem::take(&mut self.bullets);
             let mut next = Vec::new();
             for mut b in old {
+                Self::steer_bullet_toward_nearest(&mut b, &self.monsters, dt);
+                b.x += b.vx * dt;
                 b.y += b.vy * dt;
-                if b.y < -10.0 {
+                if b.x < -48.0 || b.x > 1008.0 || b.y < -48.0 || b.y > 588.0 {
                     continue;
                 }
                 if self.hit_monster(b.x, b.y, b.fever) {
@@ -395,20 +519,38 @@ impl Game {
         self.shockwaves.retain(|s| s.life > 0.0);
     }
 
-    pub fn next_modal(&mut self) {
+    /// 嵌入式关卡用：与旧 `next_modal` 行为一致（由 TS 在不需要 API 时也可调用）
+    pub fn next_modal_embedded_only(&mut self) {
         if !self.modal_open {
             return;
         }
         if self.modal_game_over {
-            self.start_level(self.level_index);
+            self.restart_current_after_game_over();
             return;
         }
-        if self.level_index >= LEVELS.len() - 1 {
+        if self.level_index >= LEVELS.len().saturating_sub(1).max(0) {
             self.level_index = 0;
             self.score = 0;
         } else {
             self.level_index += 1;
         }
-        self.start_level(self.level_index);
+        self.start_embedded_level(self.level_index);
+    }
+
+    /// 返回：0=未处理；1=已处理游戏结束重开；2=已切嵌入式下一关；3=API 模式已关弹窗，需 TS 拉下一题并 `apply_api_level`
+    pub fn handle_modal_next(&mut self) -> u8 {
+        if !self.modal_open {
+            return 0;
+        }
+        if self.modal_game_over {
+            self.restart_current_after_game_over();
+            return 1;
+        }
+        if self.use_api_levels {
+            self.modal_open = false;
+            return 3;
+        }
+        self.next_modal_embedded_only();
+        2
     }
 }

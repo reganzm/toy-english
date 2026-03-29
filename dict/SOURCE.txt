@@ -1,0 +1,9 @@
+本目录词表均来自开源仓库（与源文件格式一致：每行「单词<TAB>中文释义」）：
+
+  https://github.com/KyleBing/english-vocabulary
+
+对应文件名与仓库根目录下「N 学段-乱序.txt」一致。
+
+下载/更新：在项目根目录执行
+
+  npm run dict:download
