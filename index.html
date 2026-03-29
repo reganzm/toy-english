@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-dvh min-h-0 w-full overflow-hidden">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>玩具英语 · 打字守城</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body
+    class="m-0 box-border min-h-dvh h-dvh w-full max-w-[100vw] overflow-hidden overscroll-none antialiased"
+  >
+    <div id="app" class="flex h-dvh min-h-0 w-full max-w-[100vw] flex-col overflow-hidden">
+      <header
+        class="grid shrink-0 grid-cols-1 gap-2 border-b border-white/5 px-[max(0.5rem,env(safe-area-inset-left))] py-2 pe-[max(0.5rem,env(safe-area-inset-right))] pt-[max(0.5rem,env(safe-area-inset-top))] sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] sm:items-center sm:gap-3 sm:border-b-0 sm:px-3 sm:py-2 sm:pt-2"
+      >
+        <div class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-1 sm:justify-start">
+          <label class="flex flex-wrap items-center gap-1.5">
+            <span class="label shrink-0">模式</span>
+            <select
+              id="game-mode"
+              class="select-mode"
+              title="地狱：只听 TTS；困难：TTS+中文；入门：TTS+中英文对照"
+            >
+              <option value="2" selected>入门（中英对照）</option>
+              <option value="1">困难（听写+中文）</option>
+              <option value="0">地狱（盲听写）</option>
+            </select>
+          </label>
+          <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+            <span class="label">关卡</span>
+            <span id="level-num">1</span>
+            <span class="sep">·</span>
+            <span class="label">积分</span>
+            <span id="score">0</span>
+          </div>
+        </div>
+        <div class="min-w-0 text-center">
+          <div class="flex min-h-7 flex-wrap items-center justify-center gap-2">
+            <span id="lives" class="lives" title="生命"></span>
+            <span id="combo-pill" class="combo-pill" hidden>
+              <span class="combo-label">连击</span>
+              <span id="combo-num">0</span>
+              <span class="combo-x">×</span>
+              <span id="combo-mult">1</span>
+            </span>
+            <span id="fever-badge" class="fever-badge" hidden>狂热</span>
+          </div>
+          <div id="prompt-line" class="prompt"></div>
+          <div id="typed-line" class="typed" aria-live="polite"></div>
+        </div>
+        <div class="flex flex-wrap items-center justify-end gap-1.5 sm:justify-end">
+          <button type="button" id="btn-tts" class="btn ghost shrink-0" title="浏览器朗读英文（Web Speech API）">
+            朗读开
+          </button>
+          <button type="button" id="btn-hint" class="btn shrink-0">提示</button>
+          <button type="button" id="btn-skip-space" class="btn ghost shrink-0" title="插入空格">
+            空格
+          </button>
+        </div>
+      </header>
+      <main
+        class="relative flex min-h-0 min-w-0 flex-1 flex-col pb-[env(safe-area-inset-bottom,0px)] pt-0"
+      >
+        <div
+          class="stage-wrap relative isolate min-h-0 min-w-0 w-full flex-1 overflow-hidden bg-[#121a30]"
+        >
+          <canvas
+            id="game"
+            width="960"
+            height="540"
+            class="absolute inset-0 block h-full w-full object-contain"
+          ></canvas>
+          <div id="toast" class="toast" hidden></div>
+        </div>
+      </main>
+    </div>
+    <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
+      <div class="modal" role="dialog" aria-labelledby="modal-title">
+        <h2 id="modal-title">通关</h2>
+        <div id="modal-body"></div>
+        <button type="button" id="btn-next" class="btn primary">下一关</button>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

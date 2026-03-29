@@ -1,0 +1,33 @@
+[package]
+name = "toy-english-wasm"
+version = "0.1.0"
+edition = "2021"
+authors = ["toy-english"]
+description = "打字守城游戏核心（WebAssembly）"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2.99"
+js-sys = "0.3.77"
+console_error_panic_hook = "0.1.7"
+
+[dependencies.web-sys]
+version = "0.3.77"
+features = [
+  "Window",
+  "Document",
+  "Element",
+  "HtmlElement",
+  "HtmlCanvasElement",
+  "CanvasRenderingContext2d",
+  "KeyboardEvent",
+  "Event",
+  "EventTarget",
+  "Performance",
+]
+
+[profile.release]
+opt-level = "s"
+lto = true

@@ -1,0 +1,335 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0c1020;
+  --panel: #151b2e;
+  --text: #e8ecff;
+  --muted: #8b93b0;
+  --accent: #6cf0c8;
+  --danger: #ff6b8a;
+  --bomb: #ffd166;
+  --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(ellipse 120% 80% at 50% 0%, #1a2540 0%, var(--bg) 55%);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+/* HUD 布局由 index.html 的 Tailwind 类负责；此处仅保留组件局部样式 */
+
+.lives {
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
+}
+
+.combo-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(108, 240, 200, 0.2), rgba(255, 107, 138, 0.15));
+  border: 1px solid rgba(108, 240, 200, 0.45);
+  font-size: 0.82rem;
+  animation: combo-pop 0.35s ease;
+}
+
+.combo-pill .combo-label {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+#combo-num {
+  font-weight: 800;
+  color: var(--accent);
+  min-width: 1.2em;
+  text-align: center;
+}
+
+.combo-x {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+#combo-mult {
+  font-weight: 700;
+  color: var(--bomb);
+}
+
+.fever-badge {
+  padding: 0.12rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #1a0a20;
+  background: linear-gradient(90deg, #ff6b8a, #ffd166);
+  box-shadow: 0 0 12px rgba(255, 107, 138, 0.6);
+  animation: fever-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes combo-pop {
+  0% {
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fever-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}
+
+.label {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+#level-num,
+#score {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.sep {
+  color: var(--muted);
+  margin: 0 0.2rem;
+}
+
+.prompt {
+  font-size: 0.8rem;
+  color: var(--muted);
+  min-height: 1.2em;
+  line-height: 1.35;
+}
+
+.prompt-cn-label {
+  color: var(--muted);
+  margin-right: 0.35rem;
+  font-size: 0.72rem;
+}
+
+.prompt-hint {
+  color: #a8b0cc;
+  font-size: 0.78rem;
+}
+
+.select-mode {
+  cursor: pointer;
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--panel);
+  color: var(--text);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.78rem;
+}
+
+.select-mode:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.typed .mask-slot,
+.typed .mask-slot-dim {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  user-select: none;
+}
+
+.typed .mask-slot-dim,
+.typed .mask-space-dim {
+  opacity: 0.35;
+}
+
+.typed .mask-space,
+.typed .mask-space-dim {
+  padding: 0 0.12em;
+}
+
+.typed {
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  min-height: 1.6em;
+  margin-top: 0.15rem;
+}
+
+.typed .ok {
+  color: var(--accent);
+}
+
+.typed .pending {
+  color: var(--muted);
+  border-bottom: 1px dashed var(--muted);
+}
+
+.typed .wrong {
+  color: var(--danger);
+  animation: shake 0.2s ease;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+/* 画布容器与 #game 尺寸由 Tailwind（object-contain / max-h-full）控制 */
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  background: rgba(20, 28, 48, 0.92);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+.btn {
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--panel);
+  color: var(--text);
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn.ghost {
+  opacity: 0.85;
+}
+
+.btn.tts-off {
+  opacity: 0.55;
+  text-decoration: line-through;
+  text-decoration-color: var(--muted);
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #2a8f7a, var(--accent));
+  color: #041210;
+  font-weight: 600;
+  border: none;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* 勿用 [hidden] + display:flex 混用：作者样式会盖住 hidden，弹窗会始终显示 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 8, 16, 0.82);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modal-overlay.is-open {
+  display: flex;
+}
+
+.modal {
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+  color: var(--accent);
+}
+
+.modal-stats {
+  font-size: 0.95rem;
+  margin: 0 0 0.75rem;
+  color: #c5cae0;
+}
+
+.modal-extra {
+  font-size: 0.88rem;
+  margin: 0 0 1rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.modal-extra.perfect {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.breakdown-sentence {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.breakdown-trans {
+  color: var(--muted);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.breakdown-structure {
+  font-size: 0.9rem;
+  color: #c5cae0;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.word-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.word-table th,
+.word-table td {
+  text-align: left;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.word-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
