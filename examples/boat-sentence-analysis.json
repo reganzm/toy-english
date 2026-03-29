@@ -1,0 +1,57 @@
+{
+  "id": 9001,
+  "sentence_en": "We crossed the river by boat.",
+  "sentence_cn": "我们坐船过了河。",
+  "sentence": "We crossed the river by boat.",
+  "translation": "我们坐船过了河。",
+  "meaning_notes": {
+    "en": "We got to the other side of the river using a boat as the means of travel.",
+    "zh": "表示借助小船从河的一岸到另一岸，日常出行、旅游中很常见。"
+  },
+  "analysis": {
+    "segments": [
+      {
+        "kind": "word",
+        "text": "We",
+        "ipa": "/wiː/",
+        "pos_zh": "代词",
+        "role_zh": "主语",
+        "theme": "violet"
+      },
+      {
+        "kind": "word",
+        "text": "crossed",
+        "ipa": "/krɒst/",
+        "pos_zh": "动词",
+        "role_zh": "谓语",
+        "theme": "amber"
+      },
+      {
+        "kind": "phrase",
+        "phrase_text": "the river",
+        "role_zh": "宾语",
+        "theme": "maroon",
+        "words": [
+          { "text": "the", "ipa": "/ðə/", "pos_zh": "冠词" },
+          { "text": "river", "ipa": "/ˈrɪvə(r)/", "pos_zh": "名词" }
+        ]
+      },
+      {
+        "kind": "phrase",
+        "phrase_text": "by boat",
+        "role_zh": "状语",
+        "theme": "wine",
+        "words": [
+          { "text": "by", "ipa": "/baɪ/", "pos_zh": "介词" },
+          { "text": "boat", "ipa": "/bəʊt/", "pos_zh": "名词" }
+        ]
+      }
+    ],
+    "constituents_zh": [
+      "主语：We",
+      "谓语：crossed",
+      "宾语：the river",
+      "方式状语：by boat（说明过河的方式，核心词 boat 表「乘船」）"
+    ]
+  }
+}
